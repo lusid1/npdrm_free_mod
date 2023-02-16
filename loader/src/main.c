@@ -24,6 +24,7 @@
 #include "sctrl.h"
 #include "np9660_patch.h"
 #include "pgd.h"
+#include "logger.h"
 
 PSP_MODULE_INFO("npdrm_free_loader", PSP_MODULE_KERNEL, 1, 0);
 PSP_HEAP_SIZE_KB(0);
@@ -35,6 +36,7 @@ u8 pgdbuf[0x90];
 
 void *vshCheckBootable(void *dst, const void *src, int size)
 {
+	kprintf("npdrm_free_loader::vshCheckBootable()\n");
 	SFO *sfo = (SFO *)src;
 
 	int i;
@@ -53,6 +55,7 @@ void *vshCheckBootable(void *dst, const void *src, int size)
 
 void patch_vsh_module(SceModule2 *mod)
 {
+	kprintf("npdrm_free_loader::patch_vsh_module()\n");
 	u32 addr;
 	int syscall = sceKernelQuerySystemCall(vshCheckBootable);
 
@@ -76,6 +79,7 @@ u32 tou32(u8 *buf)
 int (* setup_edat_version_key)(u8 *vkey, u8 *edat, int size);
 int setup_edat_version_key_hook(u8 *vkey, u8 *edat, int size)
 {
+	kprintf("npdrm_free_loader::setup_edat_version_key_hook()\n");
 	int ret = setup_edat_version_key(vkey, edat, size);
 
 	if (ret < 0) { //generate key from mac if official method fails.
@@ -102,7 +106,8 @@ int do_open_hook(const char *path, int flags, SceMode mode, int async, int retAd
 
 void patch_drm()
 {
-	u32 addr;
+	kprintf("npdrm_free_loader::patch_drm()\n");
+    u32 addr;
 	SceModule2 *mod = FindModuleByName("scePspNpDrm_Driver");
 
 	for (addr = mod->text_addr; addr < (mod->text_addr + mod->text_size); addr += 4) {
@@ -129,6 +134,7 @@ void patch_drm()
 
 void patch_sysconf(SceModule2 *mod)
 {
+	kprintf("npdrm_free_loader::patch_sysconf()\n");
 	//patch sysconf act/rif check, call official function first, then patch to return 0 if it fails.
 	u32 addr;
 	for (addr = mod->text_addr; addr < (mod->text_addr + mod->text_size); addr += 4) {
@@ -150,6 +156,7 @@ void patch_sysconf(SceModule2 *mod)
 
 int module_start_handler(SceModule2 *module)
 {
+	kprintf("npdrm_free_loader::module_start_handler()\n");
 	int ret = previous ? previous(module) : 0;
 
 	if (!strcmp(module->modname, "vsh_module")) {
@@ -164,6 +171,7 @@ int module_start_handler(SceModule2 *module)
 
 int thread_start(SceSize args __attribute__((unused)), void *argp __attribute__((unused)))
 {
+	kprintf("npdrm_free_loader::thread_start()\n");
 	previous = sctrlHENSetStartModuleHandler(module_start_handler);
 
 	SceUID blockid = sceKernelAllocPartitionMemory(1, "npdrm_free_module", PSP_SMEM_Low, size_np9660_patch, NULL);
@@ -179,6 +187,7 @@ int thread_start(SceSize args __attribute__((unused)), void *argp __attribute__(
 
 int module_start(SceSize args, void *argp)
 {
+	kprintf("--------------------\nnpdrm_free_loader starting\n");
 	SceUID thid = sceKernelCreateThread("npdrm_free_loader", thread_start, 0x22, 0x2000, 0, NULL);
 
 	if (thid >= 0)

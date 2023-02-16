@@ -1,3 +1,6 @@
+v7.3 MOD:
+    Disabled DLC loading for compatibility with next version of nploader.
+    Added debug logger from nploader. Logger is disabled in standard build.
 v7.2:
 	Suspend/resume issue should be fixed, thanks to kyleatlast.
 

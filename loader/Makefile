@@ -1,5 +1,5 @@
 TARGET = npdrm_free
-OBJS =  src/main.o src/exports.o src/lib.o src/setk1.o src/imports.o src/pgd.o
+OBJS =  src/main.o src/exports.o src/lib.o src/setk1.o src/imports.o src/pgd.o src/logger.o
 
 LIBDIR = 
 LIBS = 
