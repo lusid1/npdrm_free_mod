@@ -23,7 +23,6 @@
 
 #define LOGFILE "ms0:/npdrm_free.log"
 
-//#define KPRINTF_ENABLED
 
 #ifndef KPRINTF_ENABLED
 

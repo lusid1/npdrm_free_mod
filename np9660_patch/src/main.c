@@ -194,14 +194,13 @@ void patch_game_module(SceModule2 *mod)
 	if (!licensed_eboot)
 		return;
 
-    //MOD: hooks conflict with nploader_mod
 	u32 user_sceIoOpen = FindImportByModule(mod->modname, "IoFileMgrForUser", 0x109F50BC);
-	//if (user_sceIoOpen)
-	//	sceKernelHookJalSyscall(userIoOpen, user_sceIoOpen, mod);		
-    //
-	//u32 user_sceIoOpenAsync = FindImportByModule(mod->modname, "IoFileMgrForUser", 0x89AA9906);
-	//if (user_sceIoOpenAsync)
-	//	sceKernelHookJalSyscall(userIoOpenAsync, user_sceIoOpenAsync, mod);		
+	if (user_sceIoOpen)
+		sceKernelHookJalSyscall(userIoOpen, user_sceIoOpen, mod);		
+    
+	u32 user_sceIoOpenAsync = FindImportByModule(mod->modname, "IoFileMgrForUser", 0x89AA9906);
+	if (user_sceIoOpenAsync)
+		sceKernelHookJalSyscall(userIoOpenAsync, user_sceIoOpenAsync, mod);		
 
 	ClearCaches();
 }
@@ -241,10 +240,11 @@ int module_start_handler(SceModule2 *module)
 	kprintf("--------------------\nnpdrm_free module_start_handler()\n");
 	int ret = previous ? previous(module) : 0;
 
-	if (modflag == 1) { //next module after sceKernelLibrary should be the main game module.
-		modflag = 2;
-		patch_game_module(module);
-	}
+    //MOD: don't patch game module, let nploader_mod handle it.
+	// if (modflag == 1) { //next module after sceKernelLibrary should be the main game module.
+	// 	modflag = 2;
+	// 	patch_game_module(module);
+	// }
 
 	if (!strcmp(module->modname, "sceNp9660_driver")) {
 		patch_np9660(module);
